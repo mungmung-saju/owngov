@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>혜택비서</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+  * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .profile-range { -webkit-appearance: none; appearance: none; height: 10px; border-radius: 9999px; outline: none; cursor: pointer; }
+  .profile-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 32px; height: 32px; border-radius: 9999px; background: #fff; border: 5px solid #2563eb; box-shadow: 0 2px 8px rgba(37,99,235,.35); cursor: pointer; }
+  .profile-range::-moz-range-thumb { width: 32px; height: 32px; border-radius: 9999px; background: #fff; border: 5px solid #2563eb; box-shadow: 0 2px 8px rgba(37,99,235,.35); cursor: pointer; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .fade-up { animation: fadeUp .45s ease both; }
+  @media (prefers-reduced-motion: reduce) { .fade-up { animation: none; } }
+</style>
+</head>
+<body class="bg-gradient-to-b from-blue-50 to-white">
+  <div class="min-h-screen px-4 py-10 sm:py-14">
+    <div class="mx-auto max-w-xl">
+      <div id="screen-home"></div>
+      <div id="screen-form" class="hidden"></div>
+      <div id="screen-results" class="hidden"></div>
+      <div id="screen-detail" class="hidden"></div>
+    </div>
+  </div>
+
+<script>
+/* ===================== 아이콘 (인라인 SVG · 외부 의존성 0) ===================== */
+var ICONS = {
+  bell: [['path',{d:'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9'}],['path',{d:'M10.3 21a1.94 1.94 0 0 0 3.4 0'}]],
+  home: [['path',{d:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'}],['polyline',{points:'9 22 9 12 15 12 15 22'}]],
+  users: [['path',{d:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'}],['circle',{cx:'9',cy:'7',r:'4'}],['path',{d:'M22 21v-2a4 4 0 0 0-3-3.87'}],['path',{d:'M16 3.13a4 4 0 0 1 0 7.75'}]],
+  building: [['path',{d:'M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z'}],['path',{d:'M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2'}],['path',{d:'M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2'}],['path',{d:'M10 6h4'}],['path',{d:'M10 10h4'}],['path',{d:'M10 14h4'}],['path',{d:'M10 18h4'}]],
+  check: [['polyline',{points:'20 6 9 17 4 12'}]],
+  search: [['circle',{cx:'11',cy:'11',r:'8'}],['path',{d:'m21 21-4.3-4.3'}]],
+  pin: [['path',{d:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'}],['circle',{cx:'12',cy:'10',r:'3'}]],
+  chevron: [['path',{d:'m6 9 6 6 6-6'}]],
+  x: [['path',{d:'M18 6 6 18'}],['path',{d:'m6 6 12 12'}]],
+  plus: [['path',{d:'M5 12h14'}],['path',{d:'M12 5v14'}]],
+  wallet: [['path',{d:'M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1'}],['path',{d:'M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4'}]],
+  calendar: [['rect',{x:'3',y:'4',width:'18',height:'18',rx:'2'}],['path',{d:'M16 2v4'}],['path',{d:'M8 2v4'}],['path',{d:'M3 10h18'}]],
+  badge: [['path',{d:'M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z'}],['path',{d:'m9 12 2 2 4-4'}]],
+  spark: [['path',{d:'M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5A2 2 0 0 0 15.5 9.94l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0Z'}]],
+  arrow: [['path',{d:'M5 12h14'}],['path',{d:'m12 5 7 7-7 7'}]],
+  arrowLeft: [['path',{d:'M19 12H5'}],['path',{d:'m12 19-7-7 7-7'}]],
+  extlink: [['path',{d:'M7 7h10v10'}],['path',{d:'M7 17 17 7'}]],
+  landmark: [['line',{x1:'3',x2:'21',y1:'22',y2:'22'}],['line',{x1:'6',x2:'6',y1:'18',y2:'11'}],['line',{x1:'10',x2:'10',y1:'18',y2:'11'}],['line',{x1:'14',x2:'14',y1:'18',y2:'11'}],['line',{x1:'18',x2:'18',y1:'18',y2:'11'}],['polygon',{points:'12 2 20 7 4 7'}]],
+  key: [['circle',{cx:'7.5',cy:'15.5',r:'5.5'}],['path',{d:'m21 2-9.6 9.6'}],['path',{d:'m15.5 7.5 3 3L22 7l-3-3'}]],
+  shield: [['path',{d:'M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z'}]],
+  briefcase: [['path',{d:'M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16'}],['rect',{width:'20',height:'14',x:'2',y:'6',rx:'2'}]],
+  user: [['path',{d:'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'}],['circle',{cx:'12',cy:'7',r:'4'}]],
+  info: [['circle',{cx:'12',cy:'12',r:'10'}],['path',{d:'M12 16v-4'}],['path',{d:'M12 8h.01'}]],
+  alert: [['path',{d:'m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z'}],['path',{d:'M12 9v4'}],['path',{d:'M12 17h.01'}]],
+  clipboard: [['rect',{width:'8',height:'4',x:'8',y:'2',rx:'1'}],['path',{d:'M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'}]],
+  doc: [['path',{d:'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z'}],['path',{d:'M14 2v5h5'}]]
+};
+function icon(name, opts) {
+  opts = opts || {};
+  var size = opts.size || 24, cls = opts.cls || '', sw = opts.sw || 2;
+  var els = ICONS[name] || [];
+  var inner = els.map(function (el) {
+    var tag = el[0], attrs = el[1], a = '';
+    for (var k in attrs) { a += ' ' + k + '="' + attrs[k] + '"'; }
+    return '<' + tag + a + '></' + tag + '>';
+  }).join('');
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + sw + '" stroke-linecap="round" stroke-linejoin="round" class="' + cls + '">' + inner + '</svg>';
+}
+
+/* ===================== 기준 데이터 ===================== */
+var BRAND = '혜택비서';
+var CURRENT_YEAR = 2026, MIN_YEAR = 1930, MAX_YEAR = CURRENT_YEAR - 18;
+
+var CATEGORIES = [
+  { id:'subsidy',      icon:'landmark', title:'정부지원금 조회',       desc:'개인·법인 사업자를 위한 지원금과 융자를 찾아봐요' },
+  { id:'subscription', icon:'key',      title:'주택 청약 공고',        desc:'무주택 조건에 맞는 분양·공공주택 청약을 모아봐요' },
+  { id:'loan',         icon:'shield',   title:'전세대출 및 주거 안심', desc:'전세자금 대출과 보증금 보호 제도를 확인해요' }
+];
+var CAT_MAP = {}; CATEGORIES.forEach(function (c) { CAT_MAP[c.id] = c; });
+
+var BIZ_OPTIONS = [
+  { id:'personal', label:'개인사업자', desc:'대표 1인 또는 개인 명의로 운영해요', icon:'user' },
+  { id:'corporate', label:'법인사업자', desc:'법인 등기로 설립·운영하는 기업이에요', icon:'briefcase' }
+];
+var HOUSING_OPTIONS = [
+  { id:'head',   label:'무주택 세대주', desc:'내 명의의 집이 없고, 세대를 대표해요', icon:'home' },
+  { id:'member', label:'무주택 세대원', desc:'세대에 속해 있고, 본인 명의 주택은 없어요', icon:'users' },
+  { id:'owner',  label:'유주택자',      desc:'본인 명의의 주택을 보유하고 있어요', icon:'building' }
+];
+
+var REGIONS = {
+  '서울특별시':['강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구','노원구','도봉구','동대문구','동작구','마포구','서대문구','서초구','성동구','성북구','송파구','양천구','영등포구','용산구','은평구','종로구','중구','중랑구'],
+  '경기도':['수원시','성남시','고양시','용인시','부천시','안산시','안양시','남양주시','화성시','평택시','의정부시','시흥시','파주시','김포시','광명시','광주시','군포시','하남시','오산시','이천시'],
+  '인천광역시':['계양구','남동구','동구','미추홀구','부평구','서구','연수구','중구','강화군','옹진군'],
+  '부산광역시':['강서구','금정구','남구','동구','동래구','부산진구','북구','사상구','사하구','서구','수영구','연제구','영도구','중구','해운대구','기장군'],
+  '대구광역시':['남구','달서구','동구','북구','서구','수성구','중구','달성군','군위군'],
+  '대전광역시':['대덕구','동구','서구','유성구','중구'],
+  '광주광역시':['광산구','남구','동구','북구','서구'],
+  '울산광역시':['남구','동구','북구','중구','울주군'],
+  '세종특별자치시':['세종시'],
+  '강원특별자치도':['춘천시','원주시','강릉시','동해시','속초시','삼척시'],
+  '충청북도':['청주시','충주시','제천시','음성군','진천군'],
+  '충청남도':['천안시','아산시','서산시','당진시','공주시','논산시'],
+  '전북특별자치도':['전주시','익산시','군산시','정읍시','남원시'],
+  '전라남도':['목포시','여수시','순천시','광양시','나주시'],
+  '경상북도':['포항시','경주시','구미시','안동시','경산시'],
+  '경상남도':['창원시','김해시','양산시','진주시','거제시','통영시'],
+  '제주특별자치도':['제주시','서귀포시']
+};
+var SIDO_LIST = Object.keys(REGIONS);
+
+var COLOR = {
+  blue:    { chip:'bg-blue-100 text-blue-700',       icon:'bg-blue-600' },
+  violet:  { chip:'bg-violet-100 text-violet-700',   icon:'bg-violet-600' },
+  emerald: { chip:'bg-emerald-100 text-emerald-700', icon:'bg-emerald-600' },
+  amber:   { chip:'bg-amber-100 text-amber-700',     icon:'bg-amber-600' }
+};
+
+/* ===================== 공고별 공식 신청 사이트 ===================== */
+var LINKS = {
+  '청년전용 버팀목 전세자금대출': { url:'https://nhuf.kr', site:'주택도시기금' },
+  '버팀목 전세자금대출': { url:'https://nhuf.kr', site:'주택도시기금' },
+  '중소기업취업청년 전월세보증금대출': { url:'https://nhuf.kr', site:'주택도시기금' },
+  '청년 주택드림 청약통장': { url:'https://www.kbstar.com/', site:'KB국민은행' },
+  '공공분양 뉴홈(나눔형·일반형)': { url:'https://apply.lh.or.kr', site:'LH청약플러스' },
+  '생애최초 특별공급': { url:'https://www.applyhome.co.kr', site:'청약홈' },
+  '신혼·신생아 특별공급': { url:'https://www.applyhome.co.kr', site:'청약홈' },
+  '행복주택·도시형 생활주택 입주자 모집': { url:'https://apply.lh.or.kr', site:'LH청약플러스' },
+  '소상공인 경영안정자금': { url:'https://ols.semas.or.kr', site:'소상공인정책자금' },
+  '1인 자영업자 고용보험료 지원': { url:'https://www.sbiz.or.kr/sd/main.do', site:'소상공인시장진흥공단' },
+  '노란우산공제 가입 장려금': { url:'https://www.8899.or.kr', site:'노란우산공제' },
+  '지역 소상공인 특별경영자금': { url:'https://www.bizinfo.go.kr', site:'기업마당' },
+  '중소기업 창업기업지원자금': { url:'https://www.kosmes.or.kr', site:'중소벤처기업진흥공단' },
+  '고용창출장려금': { url:'https://www.work24.go.kr', site:'고용24' },
+  '중소기업 기술개발(R&D) 지원': { url:'https://www.mssmva.org', site:'중소기업 혁신바우처 플랫폼' },
+  '수출바우처 사업': { url:'https://www.exportvoucher.com', site:'수출바우처' },
+  '전세보증금 반환보증': { url:'https://www.khug.or.kr', site:'HUG 주택도시보증공사' },
+  '지역 전월세 보증금 이자 지원': { url:'https://www.gov.kr', site:'정부24' }
+};
+function getLink(card) {
+  if (LINKS[card.title]) return LINKS[card.title];
+  var fb = {
+    subsidy:{ url:'https://www.bizinfo.go.kr', site:'기업마당' },
+    subscription:{ url:'https://www.applyhome.co.kr', site:'청약홈' },
+    loan:{ url:'https://nhuf.kr', site:'주택도시기금' }
+  };
+  return fb[card.category] || { url:'https://www.gov.kr', site:'정부24' };
+}
+
+/* ===================== 상태 (메모리 유지) ===================== */
+var state = {
+  category: null,
+  birthYear: 1990,
+  bizType: null,
+  housing: null,
+  sido: '',
+  sigungu: '',
+  keywords: [],
+  selectedCard: null,
+  resultsSubscribed: false,
+  detailSubscribed: false,
+  detailAnswers: {}
+};
+function age() { return CURRENT_YEAR - state.birthYear; }
+function regionStr() { return state.sido ? (state.sigungu ? state.sido + ' ' + state.sigungu : state.sido) : '전국'; }
+function filterTag() {
+  if (state.category === 'subsidy') { var b = BIZ_OPTIONS.filter(function(o){return o.id===state.bizType;})[0]; return b ? b.label : ''; }
+  var h = HOUSING_OPTIONS.filter(function(o){return o.id===state.housing;})[0]; return h ? h.label : '';
+}
+
+/* ===================== 결과 생성 ===================== */
+function makeResults() {
+  var p = state;
+  var region = regionStr();
+  var regionTag = region === '전국' ? '전국 대상' : region;
+  var ageTag = '만 ' + age() + '세';
+  var youth = age() <= 39;
+  var noHome = p.housing === 'head' || p.housing === 'member';
+  var housingLabel = (HOUSING_OPTIONS.filter(function(o){return o.id===p.housing;})[0]||{}).label;
+  var cands = [];
+
+  if (p.category === 'subsidy') {
+    if (p.bizType === 'personal') {
+      cands = [
+        { color:'emerald', icon:'briefcase', tag:'소상공인 융자', agency:'소상공인시장진흥공단', title:'소상공인 경영안정자금', desc:'운영자금이 필요한 개인사업자에게 낮은 금리로 빌려줘요.', amount:'최대 7,000만원 · 연 2%대', period:'분기별 접수', reasons:['개인사업자', regionTag] },
+        { color:'blue', icon:'wallet', tag:'사회보험', agency:'근로복지공단', title:'1인 자영업자 고용보험료 지원', desc:'폐업·실업에 대비한 고용보험료의 일부를 정부가 부담해요.', amount:'보험료 최대 80% 지원', period:'상시 신청', reasons:['개인사업자', ageTag] },
+        { color:'violet', icon:'badge', tag:'공제 지원', agency:'중소벤처기업부', title:'노란우산공제 가입 장려금', desc:'폐업 대비 공제에 가입하면 지자체가 납입금을 보조해요.', amount:'월 2~3만원 · 최대 12개월', period:'예산 소진 시까지', reasons:[regionTag, '개인사업자'] },
+        { color:'amber', icon:'landmark', tag:'지역 특화', agency:(p.sido||'관할')+' 지자체', title:'지역 소상공인 특별경영자금', desc:'해당 지역 소재 사업장에 추가 이차보전을 지원해요.', amount:'이차보전 최대 연 2%p', period:'상시(지역별 상이)', reasons:[regionTag, '개인사업자'] }
+      ];
+    } else if (p.bizType === 'corporate') {
+      cands = [
+        { color:'emerald', icon:'briefcase', tag:'창업·성장', agency:'중소벤처기업진흥공단', title:'중소기업 창업기업지원자금', desc:'업력 7년 이내 법인의 시설·운전자금을 저금리로 지원해요.', amount:'최대 5억원 · 정책금리', period:'상시 접수', reasons:['법인사업자', regionTag] },
+        { color:'blue', icon:'users', tag:'고용 지원', agency:'고용노동부', title:'고용창출장려금', desc:'신규 인력을 정규직으로 채용한 법인에 인건비를 지원해요.', amount:'1인당 월 최대 80만원', period:'상시 신청', reasons:['법인사업자', ageTag] },
+        { color:'violet', icon:'spark', tag:'기술 개발', agency:'중소기업기술정보진흥원', title:'중소기업 기술개발(R&D) 지원', desc:'제품·공정 혁신을 위한 연구개발 과제비를 지원해요.', amount:'과제당 최대 수억원', period:'공고별 접수', reasons:['법인사업자', regionTag] },
+        { color:'amber', icon:'landmark', tag:'수출 지원', agency:'KOTRA', title:'수출바우처 사업', desc:'해외 마케팅·인증·물류 비용을 바우처로 지원해요.', amount:'유형별 최대 1억원', period:'연 1~2회 모집', reasons:['법인사업자', '수출 희망'] }
+      ];
+    }
+  } else if (p.category === 'subscription') {
+    cands = [];
+    if (youth) cands.push({ color:'violet', icon:'badge', tag:'청약 통장', agency:'주택도시기금', title:'청년 주택드림 청약통장', desc:'우대금리와 청약 가점을 함께 받을 수 있는 청년 전용 통장이에요.', amount:'연 최대 4.5% 우대금리', period:'상시 가입', reasons:[ageTag, noHome?'무주택':housingLabel] });
+    cands.push({ color:'blue', icon:'key', tag:'공공분양', agency:'LH·지방공사', title:'공공분양 뉴홈(나눔형·일반형)', desc:'시세보다 낮은 가격으로 내 집을 마련할 수 있는 공공분양이에요.', amount:'시세 약 70% 수준 분양가', period:'단지별 공고', reasons:[regionTag, noHome?'무주택':'요건 확인'] });
+    if (age() >= 25 && age() <= 49) cands.push({ color:'violet', icon:'home', tag:'특별공급', agency:'국토교통부', title:'신혼·신생아 특별공급', desc:'혼인·출산 가구에 우선 공급 물량을 배정하는 특별공급이에요.', amount:'특별공급 우선 배정', period:'단지별 공고', reasons:[ageTag, regionTag] });
+    if (noHome) cands.push({ color:'emerald', icon:'key', tag:'특별공급', agency:'국토교통부', title:'생애최초 특별공급', desc:'생애 처음 주택을 마련하는 무주택자에게 우선권을 줘요.', amount:'전용 물량 우선 공급', period:'단지별 공고', reasons:['무주택', regionTag] });
+    cands.push({ color:'amber', icon:'landmark', tag:'지역 특화', agency:(p.sido||'관할')+' 도시공사', title:'행복주택·도시형 생활주택 입주자 모집', desc:'해당 지역 청년·신혼·고령자를 위한 임대주택을 모집해요.', amount:'시세 60~80% 임대료', period:'반기별 모집', reasons:[regionTag, ageTag] });
+  } else if (p.category === 'loan') {
+    cands = [];
+    if (age() <= 34) cands.push({ color:'blue', icon:'shield', tag:'청년 전세', agency:'주택도시기금', title:'청년전용 버팀목 전세자금대출', desc:'만 34세 이하 무주택 청년의 전세보증금을 저금리로 빌려줘요.', amount:'최대 2억원 · 연 1.8~2.7%', period:'상시 신청', reasons:[ageTag, noHome?'무주택':housingLabel] });
+    cands.push({ color:'violet', icon:'shield', tag:'전세 자금', agency:'주택도시기금', title:'버팀목 전세자금대출', desc:'무주택 세대의 전세보증금 마련을 돕는 대표 전세대출이에요.', amount:'수도권 최대 1.2억 · 저금리', period:'상시 신청', reasons:[regionTag, noHome?'무주택':'요건 확인'] });
+    if (age() <= 34) cands.push({ color:'emerald', icon:'briefcase', tag:'청년 특화', agency:'주택도시기금', title:'중소기업취업청년 전월세보증금대출', desc:'중소·중견기업 재직 청년에게 초저금리로 보증금을 빌려줘요.', amount:'최대 1억원 · 연 1.5%', period:'상시 신청', reasons:[ageTag, '중기 재직'] });
+    cands.push({ color:'amber', icon:'badge', tag:'보증금 보호', agency:'HUG 주택도시보증공사', title:'전세보증금 반환보증', desc:'집주인이 보증금을 돌려주지 못할 때 HUG가 대신 돌려줘요.', amount:'보증금 전액 보호', period:'상시 가입', reasons:[regionTag, '전세 거주'] });
+    cands.push({ color:'blue', icon:'home', tag:'주거 안심', agency:(p.sido||'관할')+' 지자체', title:'지역 전월세 보증금 이자 지원', desc:'지역 거주 무주택 가구에 전월세 대출 이자의 일부를 지원해요.', amount:'이자 최대 연 2%p 지원', period:'예산 소진 시까지', reasons:[regionTag, noHome?'무주택':'요건 확인'] });
+  }
+
+  p.keywords.slice(0, 1).forEach(function (kw) {
+    cands.push({ color:'blue', icon:'search', tag:'키워드 맞춤', agency:BRAND+' 알림', title:'‘'+kw+'’ 관련 신규 공고', desc:'‘'+kw+'’ 조건에 맞는 공고가 새로 열리면 가장 먼저 알려드려요.', amount:'공고별 상이', period:'알림 등록 시', reasons:['키워드 ‘'+kw+'’', regionTag] });
+  });
+
+  var seen = {}, out = [];
+  cands.forEach(function (c) { if (c && !seen[c.title]) { seen[c.title] = 1; out.push(c); } });
+  return out.slice(0, 4);
+}
+
+/* ===================== 상세 콘텐츠 ===================== */
+function getDetail(card) {
+  var region = state.sido ? (state.sigungu ? state.sido + ' ' + state.sigungu : state.sido) : '거주 지역';
+  var D = {
+    '청년전용 버팀목 전세자금대출': {
+      intro:'만 19~34세 무주택 청년의 전세보증금 마련을 돕는 정부 기금 대출이에요. 소득과 보증금 규모에 따라 금리가 달라집니다.',
+      highlights:[{icon:'wallet',label:'대출 한도',value:'최대 2억원'},{icon:'badge',label:'금리(연)',value:'1.8% ~ 2.7%'},{icon:'user',label:'지원 대상',value:'만 19~34세 무주택 세대주'},{icon:'calendar',label:'대출 기간',value:'2년 · 최장 10년'}],
+      requirements:['부부합산 연소득 5,000만원 이하 (신혼·2자녀 이상 6,000만원 이하)','순자산가액 3.45억원 이하 (기준은 매년 변동)','만 19세 이상 ~ 만 34세 이하 무주택 세대주 (예비 세대주 포함)','임차 전용면적 85㎡ 이하 (수도권 외 읍·면 100㎡ 이하)','임차보증금 수도권 3억원 이하 / 지방 2억원 이하'],
+      table:{ title:'소득별 기본 금리', headers:['부부합산 연소득','기본 금리(연)'], rows:[['2,000만원 이하','연 1.8%'],['2,000만 ~ 4,000만원','연 2.1%'],['4,000만 ~ 6,000만원','연 2.4%']], note:'우대금리 적용 시 더 낮아지고, 일반 기준 최대 연 2.7%까지 적용돼요.' },
+      steps:['임대차계약 체결 및 보증금 5% 이상 납부','잔금일·전입일 중 빠른 날부터 3개월 이내 신청','기금e든든 누리집 또는 수탁은행(우리·국민·신한·농협·하나) 접수'],
+      checklist:['만 19세 이상 34세 이하인가요?','세대원 전원이 무주택인가요?','부부합산 연소득이 5,000만원 이하인가요?','순자산가액이 3.45억원 이하인가요?']
+    },
+    '공공분양 뉴홈(나눔형·일반형)': {
+      intro:'시세보다 저렴하게 공급하는 공공분양 주택이에요. 자금 여력과 거주 계획에 따라 나눔형·일반형 중 선택할 수 있어요.',
+      highlights:[{icon:'wallet',label:'분양가',value:'시세 약 70% 수준'},{icon:'key',label:'공급 유형',value:'나눔형 / 일반형'},{icon:'home',label:'거주 의무',value:'유형별 적용'},{icon:'badge',label:'필수 조건',value:'청약통장 보유'}],
+      table:{ title:'나눔형 vs 일반형 한눈에 비교', headers:['구분','나눔형','일반형'], rows:[['분양가','시세 70% 이하','시세 80% 수준'],['시세차익','매각 시 70% 인정 (30% 환수)','시세차익 전부 인정'],['의무 거주','5년','전매제한 적용'],['추천 대상','초기자금 적은 실수요자','자산 여력 있는 실수요자']], note:'나눔형은 초기 부담이 작은 대신 매각 차익의 일부를 공공이 환수해요.' },
+      requirements:['입주자 모집공고일 기준 무주택 세대구성원','해당 주택건설지역('+region+') 거주자 우선 공급','월평균 소득 기준 이하 (도시근로자 가구원수별 소득의 100~140%, 유형별 상이)','총자산 약 3.45억원 이하 · 자동차가액 기준 충족','청약통장 가입 및 일정 기간·횟수 충족'],
+      steps:['청약홈 또는 LH청약플러스에서 단지별 공고 확인','해당 지역 거주 요건·우선공급 물량 확인','청약통장으로 해당 유형(나눔형/일반형) 신청'],
+      checklist:['세대원 전원이 무주택인가요?','월평균 소득이 기준 이하인가요?','총자산·자동차 기준을 충족하나요?',region+' 거주 요건을 충족하나요?']
+    },
+    '소상공인 경영안정자금': {
+      intro:'운영자금이 필요한 소상공인에게 정책금리로 자금을 빌려주는 대표 융자 사업이에요.',
+      highlights:[{icon:'wallet',label:'대출 한도',value:'최대 7,000만원'},{icon:'badge',label:'금리(연)',value:'연 2%대 정책금리'},{icon:'briefcase',label:'지원 대상',value:'소상공인'},{icon:'calendar',label:'상환 방식',value:'거치 후 분할상환'}],
+      requirements:['업종별 상시근로자 수 기준(5~10인 미만)을 충족하는 소상공인','사업자등록 후 정상 영업 중일 것','휴·폐업 상태가 아닐 것','국세·지방세 체납이 없을 것'],
+      steps:['소상공인정책자금 누리집에서 자가진단 후 신청','확인서 발급 및 보증기관(지역신용보증재단) 보증 심사','약정 후 자금 수령'],
+      checklist:['사업자등록을 유지 중인가요?','상시근로자 수 기준을 충족하나요?','세금 체납이 없나요?']
+    },
+    '중소기업 창업기업지원자금': {
+      intro:'업력 7년 이내 중소법인의 시설·운전자금을 저금리로 지원해 안정적인 성장을 돕는 정책자금이에요.',
+      highlights:[{icon:'wallet',label:'대출 한도',value:'최대 5억원'},{icon:'badge',label:'금리',value:'정책금리(변동)'},{icon:'briefcase',label:'지원 대상',value:'업력 7년 이내 중소기업'},{icon:'calendar',label:'자금 용도',value:'시설·운전자금'}],
+      requirements:['중소기업기본법상 중소기업에 해당','업력 7년 이내일 것','사업성·기술성 평가 통과','국세·지방세 체납이 없을 것'],
+      steps:['중소벤처기업진흥공단 누리집에서 신청','서류·현장 평가 및 자금 지원 결정','약정 체결 후 자금 수령'],
+      checklist:['업력 7년 이내인가요?','중소기업에 해당하나요?','세금 체납이 없나요?']
+    },
+    '전세보증금 반환보증': {
+      intro:'계약 종료 시 집주인이 보증금을 돌려주지 못할 경우, HUG가 대신 보증금을 지급해주는 안심 보증이에요.',
+      highlights:[{icon:'shield',label:'보증 범위',value:'보증금 전액'},{icon:'wallet',label:'보증료',value:'보증금·기간별 산정'},{icon:'home',label:'대상 주택',value:'아파트·다세대·오피스텔 등'},{icon:'calendar',label:'가입 시기',value:'계약기간 1/2 경과 전'}],
+      requirements:['전세보증금이 보증 한도(수도권 7억·지방 5억 등) 이내','전입신고 및 확정일자를 받았을 것','선순위 채권이 주택가격의 일정 비율 이내','임대차계약기간이 1년 이상 남아 있을 것'],
+      steps:['HUG 안심전세포털 또는 위탁은행에서 가입','주택·계약 정보 심사','보증료 납부 후 보증서 발급'],
+      checklist:['전입신고와 확정일자를 받았나요?','계약기간이 절반 이상 남아 있나요?','보증금이 한도 이내인가요?']
+    },
+    '중소기업취업청년 전월세보증금대출': {
+      intro:'중소·중견기업에 재직 중인 청년에게 초저금리로 전월세 보증금을 빌려주는 청년 특화 대출이에요.',
+      highlights:[{icon:'wallet',label:'대출 한도',value:'최대 1억원'},{icon:'badge',label:'금리(연)',value:'연 1.5% 고정'},{icon:'user',label:'지원 대상',value:'만 19~34세 중기 재직자'},{icon:'calendar',label:'대출 기간',value:'최장 10년'}],
+      requirements:['중소·중견기업 재직 또는 중소기업진흥공단 청년창업자금 수혜자','부부합산 연소득 5,000만원 이하(외벌이 3,500만원 이하)','순자산가액 기준 이하 무주택 세대주','임차보증금 2억원 이하 · 전용 85㎡ 이하'],
+      steps:['임대차계약 후 기금e든든 또는 수탁은행 신청','재직·소득 증빙 제출 및 심사','약정 후 보증금 대출 실행'],
+      checklist:['만 34세 이하 무주택 세대주인가요?','중소·중견기업에 재직 중인가요?','부부합산 연소득이 5,000만원 이하인가요?']
+    }
+  };
+  if (D[card.title]) return D[card.title];
+
+  var catReq = {
+    subsidy:['신청 자격 대상 업종·요건에 해당','사업자등록을 보유하고 정상 영업 중','국세·지방세 체납이 없을 것','동일 목적의 중복 수혜가 아닐 것'],
+    subscription:['모집공고일 기준 무주택 세대구성원','청약통장 보유 및 가입기간 충족','월평균 소득·총자산 기준 이하','해당 지역('+region+') 거주자 우선 공급'],
+    loan:['무주택 세대주 또는 예비 세대주','소득·순자산 기준 충족','대상 주택·보증금이 한도 이내','대출 목적에 부합할 것']
+  };
+  var catCheck = {
+    subsidy:['사업자등록을 유지 중인가요?','세금 체납이 없나요?','동일 지원의 중복 수혜가 아닌가요?'],
+    subscription:['세대원 전원이 무주택인가요?','소득·자산 기준을 충족하나요?',region+' 거주 요건을 충족하나요?'],
+    loan:['무주택 세대주인가요?','소득·자산 기준을 충족하나요?','대상 연령·주택 요건을 충족하나요?']
+  };
+  return {
+    intro: card.desc + ' 아래에서 지원 내용과 자격 요건을 확인하고, 자가진단으로 신청 가능성을 가늠해 보세요.',
+    highlights:[{icon:'wallet',label:'지원 내용',value:card.amount},{icon:'calendar',label:'신청 기간',value:card.period},{icon:'landmark',label:'주관 기관',value:card.agency},{icon:'doc',label:'신청 방식',value:'온라인·방문 접수'}],
+    requirements: catReq[card.category] || catReq.subsidy,
+    table: null,
+    steps:['주관 기관 누리집에서 공고 원문 확인','자격 요건 및 제출 서류 준비','온라인 또는 방문으로 신청서 접수'],
+    checklist: catCheck[card.category] || catCheck.subsidy
+  };
+}
+
+/* ===================== 화면 스위칭 (SPA) ===================== */
+var SCREENS = ['home', 'form', 'results', 'detail'];
+function show(name) {
+  SCREENS.forEach(function (s) {
+    var el = document.getElementById('screen-' + s);
+    if (s === name) el.classList.remove('hidden'); else el.classList.add('hidden');
+  });
+  window.scrollTo(0, 0);
+}
+
+/* ---------- 홈 ---------- */
+function renderHome() {
+  var cards = CATEGORIES.map(function (c, i) {
+    return '<button type="button" data-cat="' + c.id + '" class="cat-btn fade-up flex w-full items-center gap-5 rounded-3xl border-2 border-slate-200 bg-white px-6 py-7 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-100" style="animation-delay:' + (0.07 * i) + 's">'
+      + '<div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white">' + icon(c.icon, {size:32}) + '</div>'
+      + '<div class="flex-1"><div class="text-2xl font-bold text-slate-900">' + c.title + '</div><div class="mt-1 text-lg leading-snug text-slate-500">' + c.desc + '</div></div>'
+      + '<span class="text-blue-500">' + icon('arrow', {size:28}) + '</span></button>';
+  }).join('');
+
+  document.getElementById('screen-home').innerHTML =
+    '<div class="mb-9 text-center">'
+    + '<div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white">' + icon('badge', {size:32}) + '</div>'
+    + '<h1 class="text-4xl font-bold text-slate-900">' + BRAND + '</h1>'
+    + '<p class="mt-3 text-xl leading-relaxed text-slate-600">나에게 맞는 정부 혜택,<br>' + BRAND + '가 대신 찾아드릴게요.</p></div>'
+    + '<div class="space-y-4">' + cards + '</div>'
+    + '<p class="mt-8 text-center text-base text-slate-400">조건을 입력하면 실제 공고를 찾아드리고, 마지막에 맞춤 알림을 신청할 수 있어요.</p>';
+
+  Array.prototype.forEach.call(document.querySelectorAll('.cat-btn'), function (btn) {
+    btn.addEventListener('click', function (e) { e.preventDefault(); selectCategory(btn.getAttribute('data-cat')); });
+  });
+}
+
+/* ---------- 카테고리 선택 → 폼 ---------- */
+function selectCategory(id) {
+  state.category = id;
+  state.bizType = null;
+  state.housing = null;
+  renderForm();
+  show('form');
+}
+
+/* ---------- 폼 ---------- */
+function optionButtonHTML(opt, selected) {
+  return '<button type="button" data-opt="' + opt.id + '" class="opt-btn flex w-full items-center gap-4 rounded-2xl border-2 px-5 py-5 text-left transition focus:outline-none focus:ring-4 focus:ring-blue-100 '
+    + (selected ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50') + '">'
+    + '<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ' + (selected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500') + '">' + icon(opt.icon, {size:24}) + '</div>'
+    + '<div class="flex-1"><div class="text-xl font-semibold ' + (selected ? 'text-blue-700' : 'text-slate-800') + '">' + opt.label + '</div><div class="mt-0.5 text-base text-slate-500">' + opt.desc + '</div></div>'
+    + '<div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 ' + (selected ? 'border-blue-600 bg-blue-600' : 'border-slate-300') + '">' + (selected ? icon('check', {size:16, sw:3, cls:'text-white'}) : '') + '</div></button>';
+}
+
+function renderForm() {
+  var cat = CAT_MAP[state.category];
+  var isSubsidy = state.category === 'subsidy';
+  var branchTitle = isSubsidy ? '사업자 구분을 선택해주세요' : '현재 주거 상황을 선택해주세요';
+  var branchHint = isSubsidy ? '구분에 따라 받을 수 있는 지원금이 달라져요' : '하나만 선택할 수 있어요';
+  var by = state.birthYear;
+  var pct = ((by - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * 100;
+  var sidoOpts = '<option value="">시 / 도 선택</option>' + SIDO_LIST.map(function (s) { return '<option value="' + s + '"' + (state.sido===s?' selected':'') + '>' + s + '</option>'; }).join('');
+
+  document.getElementById('screen-form').innerHTML =
+    '<button type="button" id="form-back" class="mb-5 flex items-center gap-1.5 text-lg font-semibold text-slate-500 transition hover:text-blue-600 focus:outline-none">' + icon('arrowLeft', {size:22}) + '카테고리 다시 선택</button>'
+    + '<div class="overflow-hidden rounded-3xl bg-white shadow-xl shadow-blue-900/5 ring-1 ring-slate-200">'
+    +   '<div class="bg-blue-600 px-8 py-8 sm:px-10"><div class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-blue-100">' + icon(cat.icon, {size:16}) + cat.title + '</div><h1 class="mt-2 text-3xl font-bold leading-snug text-white">조건을 알려주시면<br>맞는 공고를 찾아드려요</h1></div>'
+    +   '<div class="space-y-11 px-8 py-10 sm:px-10">'
+    +     '<section><div class="mb-5 flex items-start gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-lg font-bold text-white">1</span><div><h2 class="text-2xl font-bold text-slate-900">' + branchTitle + '</h2><p class="mt-1 text-base text-slate-500">' + branchHint + '</p></div></div><div id="opt-group" class="space-y-3"></div></section>'
+    +     '<section><div class="mb-5 flex items-start gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-lg font-bold text-white">2</span><div><h2 class="text-2xl font-bold text-slate-900">나이를 알려주세요</h2><p class="mt-1 text-base text-slate-500">출생연도를 기준으로 맞는 공고를 찾아드려요</p></div></div>'
+    +       '<div class="rounded-2xl bg-blue-50 px-6 py-7"><div class="flex items-end justify-center gap-2"><span id="age-num" class="text-5xl font-bold tabular-nums text-blue-700 sm:text-6xl">' + (CURRENT_YEAR-by) + '</span><span class="mb-2 text-2xl font-semibold text-blue-700">세</span></div><p id="birth-label" class="mt-1 text-center text-lg font-medium text-slate-500">' + by + '년생</p>'
+    +         '<div class="mt-7"><input id="age-range" type="range" min="' + MIN_YEAR + '" max="' + MAX_YEAR + '" value="' + by + '" aria-label="출생연도" class="profile-range w-full" style="background:linear-gradient(to right,#2563eb 0%,#2563eb ' + pct + '%,#dbeafe ' + pct + '%,#dbeafe 100%)"><div class="mt-3 flex justify-between text-base font-medium text-slate-400"><span>' + MIN_YEAR + '년</span><span>' + MAX_YEAR + '년</span></div></div></div></section>'
+    +     '<section><div class="mb-5 flex items-start gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-lg font-bold text-white">3</span><div><h2 class="text-2xl font-bold text-slate-900">관심 지역을 선택해주세요</h2><p class="mt-1 text-base text-slate-500">선택하지 않으면 전국 공고를 찾아드려요</p></div></div>'
+    +       '<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">'
+    +         '<div><label class="mb-2 flex items-center gap-1.5 text-base font-semibold text-slate-600">' + icon('pin', {size:20, cls:'text-blue-500'}) + '시 / 도</label><div class="relative"><select id="sel-sido" class="w-full appearance-none rounded-2xl border-2 py-4 pl-5 pr-12 text-lg font-medium transition focus:outline-none focus:ring-4 focus:ring-blue-100 ' + (state.sido?'border-blue-500 bg-white text-slate-900':'border-slate-200 bg-white text-slate-400 hover:border-blue-300') + '">' + sidoOpts + '</select><span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500">' + icon('chevron', {size:24}) + '</span></div></div>'
+    +         '<div><label class="mb-2 flex items-center gap-1.5 text-base font-semibold text-slate-600">' + icon('pin', {size:20, cls:'text-blue-500'}) + '시 / 군 / 구</label><div class="relative"><select id="sel-sigungu"></select><span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500">' + icon('chevron', {size:24}) + '</span></div></div>'
+    +       '</div></section>'
+    +     '<section><div class="mb-5 flex items-start gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-lg font-bold text-white">4</span><div><h2 class="text-2xl font-bold text-slate-900">관심 키워드를 입력해주세요</h2><p class="mt-1 text-base text-slate-500">원하는 키워드를 직접 추가할 수 있어요 (선택)</p></div></div>'
+    +       '<div class="flex gap-2"><div class="relative flex-1"><span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">' + icon('search', {size:24}) + '</span><input id="kw-input" type="text" placeholder="예: 청년월세, 소상공인 대출, 청약" aria-label="관심 키워드 직접 입력" class="w-full rounded-2xl border-2 border-slate-200 py-4 pr-4 text-lg text-slate-800 transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" style="padding-left:3.25rem"></div>'
+    +         '<button type="button" id="kw-add" class="flex shrink-0 items-center gap-1 rounded-2xl bg-blue-600 px-5 text-lg font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200">' + icon('plus', {size:20, sw:3}) + '추가</button></div>'
+    +       '<div id="kw-chips" class="mt-4 flex flex-wrap gap-2"></div></section>'
+    +   '</div>'
+    +   '<div class="border-t border-slate-100 bg-white px-8 py-7 sm:px-10"><p id="form-help" class="mb-4 hidden text-center text-base text-slate-500"></p><button type="button" id="btn-results" class="flex w-full items-center justify-center gap-2 rounded-2xl py-5 text-xl font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-200">' + icon('search', {size:24}) + '결과 보기</button></div>'
+    + '</div>';
+
+  // 분기 옵션 그룹
+  renderOptionGroup();
+  // 시군구
+  populateSigungu();
+  // 키워드 칩
+  renderKeywords();
+  // 결과 보기 버튼 상태
+  refreshResultsButton();
+
+  // 이벤트 바인딩
+  document.getElementById('form-back').addEventListener('click', function (e) { e.preventDefault(); show('home'); });
+
+  document.getElementById('age-range').addEventListener('input', function (e) {
+    state.birthYear = Number(e.target.value);
+    var p = ((state.birthYear - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * 100;
+    document.getElementById('age-num').textContent = (CURRENT_YEAR - state.birthYear);
+    document.getElementById('birth-label').textContent = state.birthYear + '년생';
+    e.target.style.background = 'linear-gradient(to right,#2563eb 0%,#2563eb ' + p + '%,#dbeafe ' + p + '%,#dbeafe 100%)';
+  });
+
+  document.getElementById('sel-sido').addEventListener('change', function (e) {
+    state.sido = e.target.value; state.sigungu = '';
+    e.target.className = 'w-full appearance-none rounded-2xl border-2 py-4 pl-5 pr-12 text-lg font-medium transition focus:outline-none focus:ring-4 focus:ring-blue-100 ' + (state.sido ? 'border-blue-500 bg-white text-slate-900' : 'border-slate-200 bg-white text-slate-400 hover:border-blue-300');
+    populateSigungu();
+  });
+
+  var addKw = function () {
+    var input = document.getElementById('kw-input');
+    var v = (input.value || '').trim();
+    if (!v) return;
+    if (state.keywords.indexOf(v) === -1) state.keywords.push(v);
+    input.value = '';
+    renderKeywords();
+  };
+  document.getElementById('kw-add').addEventListener('click', function (e) { e.preventDefault(); addKw(); });
+  document.getElementById('kw-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addKw(); } });
+
+  document.getElementById('btn-results').addEventListener('click', function (e) { e.preventDefault(); searchBenefits(); });
+}
+
+function renderOptionGroup() {
+  var group = document.getElementById('opt-group');
+  if (!group) return;
+  var isSubsidy = state.category === 'subsidy';
+  var opts = isSubsidy ? BIZ_OPTIONS : HOUSING_OPTIONS;
+  var sel = isSubsidy ? state.bizType : state.housing;
+  group.innerHTML = opts.map(function (o) { return optionButtonHTML(o, sel === o.id); }).join('');
+  Array.prototype.forEach.call(group.querySelectorAll('.opt-btn'), function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      var id = btn.getAttribute('data-opt');
+      if (isSubsidy) state.bizType = id; else state.housing = id;
+      renderOptionGroup();
+      refreshResultsButton();
+    });
+  });
+}
+
+function populateSigungu() {
+  var sel = document.getElementById('sel-sigungu');
+  if (!sel) return;
+  var list = state.sido ? REGIONS[state.sido] : [];
+  var disabled = !state.sido;
+  sel.disabled = disabled;
+  sel.className = 'w-full appearance-none rounded-2xl border-2 py-4 pl-5 pr-12 text-lg font-medium transition focus:outline-none focus:ring-4 focus:ring-blue-100 ' + (disabled ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400' : (state.sigungu ? 'border-blue-500 bg-white text-slate-900' : 'border-slate-200 bg-white text-slate-400 hover:border-blue-300'));
+  var ph = disabled ? '시 / 도를 먼저 선택' : '시 / 군 / 구 선택';
+  sel.innerHTML = '<option value="">' + ph + '</option>' + list.map(function (g) { return '<option value="' + g + '"' + (state.sigungu===g?' selected':'') + '>' + g + '</option>'; }).join('');
+  sel.onchange = function (e) {
+    state.sigungu = e.target.value;
+    sel.className = 'w-full appearance-none rounded-2xl border-2 py-4 pl-5 pr-12 text-lg font-medium transition focus:outline-none focus:ring-4 focus:ring-blue-100 ' + (state.sigungu ? 'border-blue-500 bg-white text-slate-900' : 'border-slate-200 bg-white text-slate-400 hover:border-blue-300');
+  };
+}
+
+function renderKeywords() {
+  var box = document.getElementById('kw-chips');
+  if (!box) return;
+  box.innerHTML = state.keywords.map(function (kw) {
+    return '<span class="flex items-center gap-2 rounded-full bg-blue-600 py-2.5 pl-5 pr-3 text-lg font-semibold text-white">' + kw + '<button type="button" data-kw="' + kw + '" class="kw-del flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 transition hover:bg-blue-400" aria-label="' + kw + ' 삭제">' + icon('x', {size:16, sw:3}) + '</button></span>';
+  }).join('');
+  Array.prototype.forEach.call(box.querySelectorAll('.kw-del'), function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      var kw = btn.getAttribute('data-kw');
+      state.keywords = state.keywords.filter(function (k) { return k !== kw; });
+      renderKeywords();
+    });
+  });
+}
+
+function formValid() { return state.category === 'subsidy' ? state.bizType !== null : state.housing !== null; }
+function refreshResultsButton() {
+  var btn = document.getElementById('btn-results');
+  var help = document.getElementById('form-help');
+  if (!btn) return;
+  var valid = formValid();
+  btn.disabled = !valid;
+  btn.className = 'flex w-full items-center justify-center gap-2 rounded-2xl py-5 text-xl font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-200 ' + (valid ? 'bg-blue-600 text-white hover:bg-blue-700' : 'cursor-not-allowed bg-slate-200 text-slate-400');
+  if (help) {
+    if (valid) { help.classList.add('hidden'); }
+    else { help.classList.remove('hidden'); help.textContent = state.category === 'subsidy' ? '사업자 구분을 선택해주세요.' : '주거 상황을 선택해주세요.'; }
+  }
+}
+
+/* ---------- 결과 보기 ---------- */
+function searchBenefits() {
+  if (!formValid()) { refreshResultsButton(); return; }
+  state.resultsSubscribed = false;
+  renderResults();
+  show('results');
+}
+
+function renderResults() {
+  var cat = CAT_MAP[state.category];
+  var list = makeResults();
+  window._resultsCache = list; // 클릭 시 카드 조회용 (메모리 유지)
+
+  var tags = [filterTag(), '만 ' + age() + '세', regionStr()].filter(Boolean).map(function (t) {
+    return '<span class="rounded-full bg-blue-500/60 px-3 py-1.5 text-base font-semibold text-white">' + t + '</span>';
+  }).join('');
+
+  var cardsHTML = list.map(function (b, i) {
+    var c = COLOR[b.color];
+    var reasons = b.reasons.map(function (r) { return '<span class="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">' + r + '</span>'; }).join('');
+    return '<div class="fade-up rounded-2xl border-2 border-slate-100 p-5 transition hover:border-blue-200 hover:shadow-md" style="animation-delay:' + (0.07 * (i + 1)) + 's">'
+      + '<div class="flex items-center justify-between"><span class="rounded-full px-3 py-1 text-sm font-bold ' + c.chip + '">' + b.tag + '</span><span class="flex items-center gap-1 text-sm font-semibold text-emerald-600">' + icon('badge', {size:16}) + '조건 충족</span></div>'
+      + '<div class="mt-3 flex items-start gap-3"><div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white ' + c.icon + '">' + icon(b.icon, {size:24}) + '</div><div><h3 class="text-xl font-bold leading-snug text-slate-900">' + b.title + '</h3><p class="mt-1 text-base leading-relaxed text-slate-500">' + b.desc + '</p><p class="mt-1.5 text-sm font-medium text-slate-400">주관 · ' + b.agency + '</p></div></div>'
+      + '<div class="mt-4 grid grid-cols-1 gap-2 rounded-xl bg-slate-50 px-4 py-3 sm:grid-cols-2"><div class="flex items-center gap-2 text-base">' + icon('wallet', {size:18, cls:'text-slate-400'}) + '<span class="font-semibold text-slate-800">' + b.amount + '</span></div><div class="flex items-center gap-2 text-base">' + icon('calendar', {size:18, cls:'text-slate-400'}) + '<span class="font-medium text-slate-600">' + b.period + '</span></div></div>'
+      + '<div class="mt-3 flex flex-wrap gap-2">' + reasons + '</div>'
+      + '<button type="button" data-idx="' + i + '" class="detail-btn mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border-2 border-blue-200 py-3 text-lg font-bold text-blue-700 transition hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100">신청 자격 확인하기 ' + icon('arrow', {size:20}) + '</button></div>';
+  }).join('');
+
+  document.getElementById('screen-results').innerHTML =
+    '<button type="button" id="results-back" class="mb-5 flex items-center gap-1.5 text-lg font-semibold text-slate-500 transition hover:text-blue-600 focus:outline-none">' + icon('arrowLeft', {size:22}) + '조건 다시 설정</button>'
+    + '<div class="fade-up overflow-hidden rounded-3xl bg-white shadow-xl shadow-blue-900/5 ring-1 ring-slate-200">'
+    +   '<div class="bg-blue-600 px-8 py-8 sm:px-10"><div class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-blue-100">' + icon(cat.icon, {size:16}) + cat.title + '</div><h1 class="mt-2 text-3xl font-bold text-white">조건에 맞는 공고 ' + list.length + '건을 찾았어요</h1><div class="mt-4 flex flex-wrap gap-2">' + tags + '</div></div>'
+    +   '<div class="space-y-4 px-6 py-8 sm:px-8">' + cardsHTML + '<p class="pt-1 text-center text-sm text-slate-400">* 표시된 공고·금액·기간은 예시이며, 실제 내용은 기관 공고를 확인해 주세요.</p></div>'
+    +   '<div id="results-cta" class="border-t border-slate-100 bg-blue-50/60 px-8 py-8 sm:px-10"></div>'
+    + '</div>';
+
+  document.getElementById('results-back').addEventListener('click', function (e) { e.preventDefault(); renderForm(); show('form'); });
+  Array.prototype.forEach.call(document.querySelectorAll('.detail-btn'), function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      var idx = Number(btn.getAttribute('data-idx'));
+      showDetailPage(window._resultsCache[idx]);
+    });
+  });
+  renderResultsCTA();
+}
+
+function renderResultsCTA() {
+  var box = document.getElementById('results-cta');
+  if (!box) return;
+  if (state.resultsSubscribed) {
+    box.innerHTML = '<div class="fade-up flex flex-col items-center text-center"><div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600">' + icon('check', {size:36, sw:3, cls:'text-white'}) + '</div><h3 class="text-2xl font-bold text-slate-900">알림 신청이 완료되었습니다!</h3><p class="mt-2 text-lg leading-relaxed text-slate-600">' + regionStr() + ' · 만 ' + age() + '세 조건에 맞는 새 공고가 열리면<br class="hidden sm:block"> 가장 먼저 알려드릴게요.</p><button type="button" id="cta-home" class="mt-6 flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-6 py-3.5 text-lg font-semibold text-slate-700 transition hover:border-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-100">' + icon('home', {size:20}) + '처음으로 돌아가기</button></div>';
+    document.getElementById('cta-home').addEventListener('click', function (e) { e.preventDefault(); show('home'); });
+  } else {
+    box.innerHTML = '<div class="text-center"><h3 class="text-xl font-bold text-slate-900">이 조건의 새 공고, 놓치지 마세요</h3><p class="mt-2 text-base leading-relaxed text-slate-500">위 조건에 맞는 공고가 새로 열릴 때마다 알림으로 받아볼 수 있어요.</p><button type="button" id="cta-sub" class="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-5 text-xl font-bold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200">' + icon('bell', {size:24}) + '맞춤 알림 신청하기</button></div>';
+    document.getElementById('cta-sub').addEventListener('click', function (e) { e.preventDefault(); state.resultsSubscribed = true; renderResultsCTA(); });
+  }
+}
+
+/* ---------- 상세 페이지 ---------- */
+function showDetailPage(card) {
+  card = Object.assign({}, card, { category: state.category });
+  state.selectedCard = card;
+  state.detailSubscribed = false;
+  state.detailAnswers = {};
+  renderDetail();
+  show('detail');
+}
+
+function renderDetail() {
+  var card = state.selectedCard;
+  var detail = getDetail(card);
+  var link = getLink(card);
+  var c = COLOR[card.color];
+
+  var tags = [filterTag(), '만 ' + age() + '세', regionStr()].filter(Boolean).map(function (t) {
+    return '<span class="rounded-full bg-blue-500/60 px-3 py-1.5 text-base font-semibold text-white">' + t + '</span>';
+  }).join('');
+
+  var highlights = detail.highlights.map(function (h) {
+    return '<div class="rounded-2xl border-2 border-slate-100 bg-white px-4 py-4"><div class="flex items-center gap-1.5 text-base font-medium text-slate-500">' + icon(h.icon, {size:18, cls:'text-blue-500'}) + h.label + '</div><div class="mt-1.5 text-xl font-bold leading-snug text-slate-900">' + h.value + '</div></div>';
+  }).join('');
+
+  var tableHTML = '';
+  if (detail.table) {
+    var heads = detail.table.headers.map(function (h) { return '<div class="px-3 py-3">' + h + '</div>'; }).join('');
+    var rows = detail.table.rows.map(function (row, ri) {
+      var cells = row.map(function (cell, ci) { return '<div class="px-3 py-3.5 leading-snug ' + (ci === 0 ? 'font-bold text-slate-800' : 'font-medium text-slate-600') + '">' + cell + '</div>'; }).join('');
+      return '<div class="grid items-center text-center text-lg ' + (ri % 2 ? 'bg-slate-50' : 'bg-white') + '" style="grid-template-columns:repeat(' + row.length + ',minmax(0,1fr))">' + cells + '</div>';
+    }).join('');
+    var note = detail.table.note ? '<p class="mt-2 flex items-start gap-1.5 text-base text-slate-500">' + icon('info', {size:18, cls:'mt-0.5 shrink-0 text-slate-400'}) + detail.table.note + '</p>' : '';
+    tableHTML = '<section><h2 class="mb-4 flex items-center gap-2 text-2xl font-bold text-slate-900">' + icon('clipboard', {size:24, cls:'text-blue-600'}) + detail.table.title + '</h2><div class="overflow-hidden rounded-2xl border-2 border-slate-100"><div class="grid bg-blue-600 text-center text-lg font-bold text-white" style="grid-template-columns:repeat(' + detail.table.headers.length + ',minmax(0,1fr))">' + heads + '</div>' + rows + '</div>' + note + '</section>';
+  }
+
+  var reqs = detail.requirements.map(function (r) {
+    return '<li class="flex items-start gap-3 rounded-2xl bg-slate-50 px-5 py-4"><span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">' + icon('check', {size:16, sw:3}) + '</span><span class="text-lg leading-relaxed text-slate-700">' + r + '</span></li>';
+  }).join('');
+
+  var stepsHTML = '';
+  if (detail.steps) {
+    var steps = detail.steps.map(function (s, i) { return '<li class="flex items-start gap-3"><span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-lg font-bold text-blue-700">' + (i + 1) + '</span><span class="pt-0.5 text-lg leading-relaxed text-slate-700">' + s + '</span></li>'; }).join('');
+    stepsHTML = '<section><h2 class="mb-4 flex items-center gap-2 text-2xl font-bold text-slate-900">' + icon('doc', {size:24, cls:'text-blue-600'}) + '신청 방법</h2><ol class="space-y-3">' + steps + '</ol>'
+      + '<a href="' + link.url + '" target="_blank" rel="noopener noreferrer" class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-blue-200 py-4 text-lg font-bold text-blue-700 transition hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100">' + link.site + '에서 신청하기 ' + icon('extlink', {size:20, sw:2.5}) + '</a></section>';
+  }
+
+  document.getElementById('screen-detail').innerHTML =
+    '<button type="button" id="detail-back" class="mb-5 flex items-center gap-1.5 text-lg font-semibold text-slate-500 transition hover:text-blue-600 focus:outline-none">' + icon('arrowLeft', {size:22}) + '결과 목록으로</button>'
+    + '<div class="fade-up overflow-hidden rounded-3xl bg-white shadow-xl shadow-blue-900/5 ring-1 ring-slate-200">'
+    +   '<div class="bg-blue-600 px-8 py-8 sm:px-10">'
+    +     '<span class="inline-block rounded-full px-3 py-1 text-sm font-bold ' + c.chip + '">' + card.tag + '</span>'
+    +     '<div class="mt-3 flex items-start justify-between gap-3"><h1 class="text-3xl font-bold leading-snug text-white">' + card.title + '</h1>'
+    +       '<a href="' + link.url + '" target="_blank" rel="noopener noreferrer" title="' + link.site + ' 공식 사이트로 이동" class="hidden shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-2.5 text-base font-bold text-blue-700 shadow-sm transition hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-300 sm:flex">공식 신청 사이트 ' + icon('extlink', {size:18, sw:2.5}) + '</a></div>'
+    +     '<div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2"><p class="text-base font-medium text-blue-100">주관 · ' + card.agency + '</p>'
+    +       '<a href="' + link.url + '" target="_blank" rel="noopener noreferrer" title="' + link.site + ' 공식 사이트로 이동" class="flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-base font-bold text-blue-700 shadow-sm transition hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-300 sm:hidden">사이트 바로가기 ' + icon('extlink', {size:18, sw:2.5}) + '</a></div>'
+    +     '<div class="mt-4 flex flex-wrap gap-2">' + tags + '</div></div>'
+    +   '<div class="space-y-10 px-7 py-9 sm:px-9">'
+    +     '<p class="rounded-2xl bg-blue-50 px-5 py-4 text-lg leading-relaxed text-slate-700">' + detail.intro + '</p>'
+    +     '<section><h2 class="mb-4 flex items-center gap-2 text-2xl font-bold text-slate-900">' + icon('info', {size:24, cls:'text-blue-600'}) + '한눈에 보기</h2><div class="grid grid-cols-2 gap-3">' + highlights + '</div></section>'
+    +     tableHTML
+    +     '<section><h2 class="mb-4 flex items-center gap-2 text-2xl font-bold text-slate-900">' + icon('badge', {size:24, cls:'text-blue-600'}) + '상세 자격 요건</h2><ul class="space-y-3">' + reqs + '</ul></section>'
+    +     stepsHTML
+    +     '<section class="rounded-2xl bg-blue-50/70 px-5 py-6"><h2 class="mb-1 flex items-center gap-2 text-2xl font-bold text-slate-900">' + icon('clipboard', {size:24, cls:'text-blue-600'}) + '나의 자격 자가진단</h2><p id="check-progress" class="mb-5 text-base text-slate-500"></p><div id="check-list" class="space-y-3"></div><div id="check-feedback"></div></section>'
+    +   '</div>'
+    +   '<div id="detail-cta" class="border-t border-slate-100 bg-blue-50/60 px-8 py-8 sm:px-10"></div>'
+    + '</div>';
+
+  document.getElementById('detail-back').addEventListener('click', function (e) { e.preventDefault(); show('results'); });
+  renderChecklist();
+  renderDetailCTA();
+}
+
+function renderChecklist() {
+  var detail = getDetail(state.selectedCard);
+  var list = document.getElementById('check-list');
+  var prog = document.getElementById('check-progress');
+  var fb = document.getElementById('check-feedback');
+  if (!list) return;
+  var total = detail.checklist.length;
+  var answered = Object.keys(state.detailAnswers).length;
+
+  prog.textContent = '각 질문에 예/아니오로 답해 신청 가능성을 가늠해 보세요. (' + answered + '/' + total + ')';
+
+  list.innerHTML = detail.checklist.map(function (q, i) {
+    var a = state.detailAnswers[i];
+    var yesCls = a === 'yes' ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300';
+    var noCls = a === 'no' ? 'border-slate-500 bg-slate-500 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300';
+    return '<div class="rounded-2xl bg-white px-5 py-4 ring-1 ring-slate-100"><p class="text-lg font-semibold leading-snug text-slate-800">' + q + '</p><div class="mt-3 flex gap-2">'
+      + '<button type="button" data-i="' + i + '" data-v="yes" class="chk-btn flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 py-3 text-lg font-bold transition focus:outline-none ' + yesCls + '">' + icon('check', {size:20, sw:3}) + '예</button>'
+      + '<button type="button" data-i="' + i + '" data-v="no" class="chk-btn flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 py-3 text-lg font-bold transition focus:outline-none ' + noCls + '">' + icon('x', {size:20, sw:3}) + '아니오</button>'
+      + '</div></div>';
+  }).join('');
+
+  Array.prototype.forEach.call(list.querySelectorAll('.chk-btn'), function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      state.detailAnswers[Number(btn.getAttribute('data-i'))] = btn.getAttribute('data-v');
+      renderChecklist();
+    });
+  });
+
+  var allAnswered = Object.keys(state.detailAnswers).length === total;
+  var allYes = allAnswered && detail.checklist.every(function (_, i) { return state.detailAnswers[i] === 'yes'; });
+  if (allAnswered) {
+    if (allYes) {
+      fb.innerHTML = '<div class="fade-up mt-5 flex items-start gap-3 rounded-2xl bg-blue-600 px-5 py-4"><span class="text-white">' + icon('badge', {size:26}) + '</span><div><p class="text-lg font-bold text-white">회원님은 신청 자격을 충족할 가능성이 높습니다!</p><p class="mt-0.5 text-base text-blue-100">모든 항목을 충족했어요. 위 공식 사이트에서 바로 신청하거나, 아래에서 알림을 신청해 보세요.</p></div></div>';
+    } else {
+      fb.innerHTML = '<div class="fade-up mt-5 flex items-start gap-3 rounded-2xl bg-amber-100 px-5 py-4"><span class="text-amber-600">' + icon('alert', {size:26}) + '</span><div><p class="text-lg font-bold text-amber-800">일부 요건을 다시 확인해 보세요.</p><p class="mt-0.5 text-base text-amber-700">‘아니오’로 답한 항목이 있어요. 자격 요건을 다시 살펴보세요.</p></div></div>';
+    }
+  } else {
+    fb.innerHTML = '';
+  }
+}
+
+function renderDetailCTA() {
+  var box = document.getElementById('detail-cta');
+  var card = state.selectedCard;
+  if (!box) return;
+  if (state.detailSubscribed) {
+    box.innerHTML = '<div class="fade-up flex flex-col items-center text-center"><div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600">' + icon('check', {size:36, sw:3, cls:'text-white'}) + '</div><h3 class="text-2xl font-bold text-slate-900">알림 신청이 완료되었습니다!</h3><p class="mt-2 text-lg leading-relaxed text-slate-600"><span class="font-semibold text-slate-800">' + card.title + '</span>의<br class="hidden sm:block"> 변경사항이 생기면 바로 알려드릴게요.</p><button type="button" id="detail-cta-home" class="mt-6 flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-6 py-3.5 text-lg font-semibold text-slate-700 transition hover:border-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-100">' + icon('home', {size:20}) + '처음으로 돌아가기</button></div>';
+    document.getElementById('detail-cta-home').addEventListener('click', function (e) { e.preventDefault(); show('home'); });
+  } else {
+    box.innerHTML = '<div class="text-center"><h3 class="text-xl font-bold text-slate-900">이 공고의 변경사항, 놓치지 마세요</h3><p class="mt-2 text-base leading-relaxed text-slate-500">접수 시작·마감, 요건 변경 등 이 공고의 소식을 실시간으로 받아볼 수 있어요.</p><button type="button" id="detail-cta-sub" class="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-5 text-xl font-bold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200">' + icon('bell', {size:24}) + '이 공고 실시간 변경사항 알림받기</button></div>';
+    document.getElementById('detail-cta-sub').addEventListener('click', function (e) { e.preventDefault(); state.detailSubscribed = true; renderDetailCTA(); });
+  }
+}
+
+/* ===================== 초기화 ===================== */
+document.addEventListener('DOMContentLoaded', function () {
+  renderHome();
+  show('home');
+});
+</script>
+</body>
+</html>
